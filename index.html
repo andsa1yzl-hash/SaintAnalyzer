@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Стеклянный эффект · SaintAnalyzer</title>
+    <title>Saint Analyzer</title>
+
+    <!-- Подключение современных шрифтов -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
         * {
             margin: 0;
@@ -14,42 +20,42 @@
         html, body {
             width: 100%;
             height: 100%;
-            overflow: hidden;         /* убираем прокрутку */
+            overflow: hidden;
             background: #0b0e14;
-            font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', system-ui, sans-serif;
         }
 
         /* Контейнер на весь экран */
         .glass-container {
-            position: fixed;          /* фиксируем на весь вьюпорт */
+            position: fixed;
             inset: 0;
             width: 100vw;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* Картинка на весь экран, с сохранением пропорций (заполняет, обрезая лишнее) */
+        /* Картинка на весь экран */
         .glass-container img {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;        /* заполняет весь экран, обрезая края */
-            object-position: center;  /* центрируем */
+            object-fit: cover;
+            object-position: center;
             display: block;
             user-select: none;
             -webkit-user-drag: none;
             pointer-events: none;
         }
 
-        /* Стеклянный слой на весь экран */
+        /* Стеклянный слой */
         .glass-layer {
             position: absolute;
             inset: 0;
             background: rgba(255, 255, 255, 0.10);
             backdrop-filter: blur(14px) saturate(1.2) brightness(1.05);
             -webkit-backdrop-filter: blur(14px) saturate(1.2) brightness(1.05);
-            border: 1px solid rgba(255, 255, 255, 0.20); /* тонкая кромка по периметру */
+            border: 1px solid rgba(255, 255, 255, 0.20);
             box-shadow:
                 0 0 40px rgba(255, 255, 255, 0.08) inset,
                 0 0 30px rgba(0, 0, 0, 0.35) inset;
@@ -58,7 +64,7 @@
             transition: backdrop-filter 0.25s ease, background 0.25s ease;
         }
 
-        /* Блик поверх стекла — диагональный градиент */
+        /* Блик поверх стекла */
         .glass-layer::after {
             content: '';
             position: absolute;
@@ -74,17 +80,66 @@
             pointer-events: none;
         }
 
-        /* Мягкое «оживление» при наведении — стекло чуть светлеет */
         .glass-container:hover .glass-layer {
             backdrop-filter: blur(10px) saturate(1.3) brightness(1.08);
             -webkit-backdrop-filter: blur(10px) saturate(1.3) brightness(1.08);
             background: rgba(255, 255, 255, 0.07);
         }
 
-        /* Если браузер не поддерживает backdrop-filter — компенсируем плотностью */
         @supports not (backdrop-filter: blur(1px)) {
             .glass-layer {
                 background: rgba(30, 30, 40, 0.45);
+            }
+        }
+
+        /* === Надпись Saint Analyzer === */
+        .title {
+            position: absolute;
+            top: 44px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+            font-weight: 200;                 /* тонкий, элегантный вес */
+            font-size: clamp(2.2rem, 6vw, 5rem);
+            letter-spacing: 0.32em;           /* широкая разрядка — «премиальная» типографика */
+            text-transform: uppercase;
+            text-align: center;
+            white-space: nowrap;
+            pointer-events: none;
+
+            /* Градиентный белый текст (сверху ярче, снизу мягче) */
+            background: linear-gradient(
+                180deg,
+                #ffffff 0%,
+                #ffffff 55%,
+                #d8dde8 100%
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+
+            /* Тонкая тень для читаемости */
+            filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.55))
+                    drop-shadow(0 0 1px rgba(255, 255, 255, 0.4));
+
+            animation: fadeInDown 0.9s ease-out both;
+        }
+
+        /* Разрядка по центру не должна «съедать» текст справа — компенсируем */
+        .title {
+            padding-left: 0.32em;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-14px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
             }
         }
     </style>
@@ -93,11 +148,14 @@
     <div class="glass-container">
         <img
             src="https://github.com/andsa1yzl-hash/SaintAnalyzer/blob/main/Background.png?raw=true"
-            alt="SaintAnalyzer Background"
+            alt="Saint Analyzer Background"
             loading="eager"
             draggable="false"
         >
         <div class="glass-layer" aria-hidden="true"></div>
+
+        <!-- Надпись -->
+        <h1 class="title">Saint Analyzer</h1>
     </div>
 </body>
 </html>
