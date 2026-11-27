@@ -3,19 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saint Analyzer</title>
+    <title>Saint Analyzer · Code Editor</title>
 
-    <!-- Подключение современных шрифтов -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&family=Manrope:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Unbounded:wght@400;600;800;900&display=swap" rel="stylesheet">
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         html, body {
             width: 100%;
@@ -25,7 +20,6 @@
             font-family: 'Inter', system-ui, sans-serif;
         }
 
-        /* Контейнер на весь экран */
         .glass-container {
             position: fixed;
             inset: 0;
@@ -34,7 +28,6 @@
             overflow: hidden;
         }
 
-        /* Картинка на весь экран */
         .glass-container img {
             position: absolute;
             inset: 0;
@@ -48,7 +41,6 @@
             pointer-events: none;
         }
 
-        /* Стеклянный слой */
         .glass-layer {
             position: absolute;
             inset: 0;
@@ -61,10 +53,8 @@
                 0 0 30px rgba(0, 0, 0, 0.35) inset;
             pointer-events: none;
             z-index: 2;
-            transition: backdrop-filter 0.25s ease, background 0.25s ease;
         }
 
-        /* Блик поверх стекла */
         .glass-layer::after {
             content: '';
             position: absolute;
@@ -80,67 +70,539 @@
             pointer-events: none;
         }
 
-        .glass-container:hover .glass-layer {
-            backdrop-filter: blur(10px) saturate(1.3) brightness(1.08);
-            -webkit-backdrop-filter: blur(10px) saturate(1.3) brightness(1.08);
-            background: rgba(255, 255, 255, 0.07);
-        }
-
-        @supports not (backdrop-filter: blur(1px)) {
-            .glass-layer {
-                background: rgba(30, 30, 40, 0.45);
-            }
-        }
-
-        /* === Надпись Saint Analyzer === */
         .title {
             position: absolute;
-            top: 44px;
+            top: 36px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 3;
-            font-family: 'Manrope', 'Inter', system-ui, sans-serif;
-            font-weight: 200;                 /* тонкий, элегантный вес */
-            font-size: clamp(2.2rem, 6vw, 5rem);
-            letter-spacing: 0.32em;           /* широкая разрядка — «премиальная» типографика */
+            font-family: 'Unbounded', 'Inter', system-ui, sans-serif;
+            font-weight: 900;
+            font-size: clamp(2.2rem, 6vw, 5.5rem);
+            letter-spacing: 0.02em;
+            line-height: 1;
             text-transform: uppercase;
             text-align: center;
             white-space: nowrap;
             pointer-events: none;
-
-            /* Градиентный белый текст (сверху ярче, снизу мягче) */
-            background: linear-gradient(
-                180deg,
-                #ffffff 0%,
-                #ffffff 55%,
-                #d8dde8 100%
-            );
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            -webkit-text-fill-color: transparent;
-
-            /* Тонкая тень для читаемости */
-            filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.55))
-                    drop-shadow(0 0 1px rgba(255, 255, 255, 0.4));
-
-            animation: fadeInDown 0.9s ease-out both;
-        }
-
-        /* Разрядка по центру не должна «съедать» текст справа — компенсируем */
-        .title {
-            padding-left: 0.32em;
+            color: #ffffff;
+            -webkit-text-fill-color: #ffffff;
+            text-shadow:
+                0 1px 0 rgba(255, 255, 255, 0.15),
+                0 4px 20px rgba(0, 0, 0, 0.55),
+                0 0 40px rgba(0, 0, 0, 0.35);
+            animation: fadeInDown 0.8s ease-out both;
         }
 
         @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(-14px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
+            from { opacity: 0; transform: translateX(-50%) translateY(-14px); }
+            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        @media (max-width: 420px) {
+            .title { font-size: clamp(1.6rem, 8vw, 2.4rem); }
+        }
+
+        /* Экран авторизации */
+        .auth-screen {
+            position: absolute;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(11, 14, 20, 0.7);
+            backdrop-filter: blur(30px) saturate(1.2);
+            -webkit-backdrop-filter: blur(30px) saturate(1.2);
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .auth-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .auth-box {
+            background: rgba(22, 26, 34, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: min(500px, 90vw);
+            text-align: center;
+            animation: scaleIn 0.4s ease-out both;
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .auth-box h2 {
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 24px;
+        }
+
+        .auth-box p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .auth-input:focus {
+            border-color: #7cc4ff;
+            box-shadow: 0 0 0 3px rgba(124, 196, 255, 0.2);
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+        }
+
+        .auth-btn:active {
+            transform: translateY(0);
+        }
+
+        .auth-error {
+            color: #ff5f57;
+            font-size: 13px;
+            min-height: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .auth-error.show {
+            opacity: 1;
+        }
+
+        /* Основной редактор */
+        .editor-wrap {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(1100px, 92vw);
+            height: min(78vh, 780px);
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            border-radius: 16px;
+            overflow: hidden;
+            background: rgba(22, 26, 34, 0.55);
+            backdrop-filter: blur(22px) saturate(1.3) brightness(1.05);
+            -webkit-backdrop-filter: blur(22px) saturate(1.3) brightness(1.05);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.55),
+                0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+                0 1px 0 rgba(255, 255, 255, 0.15) inset;
+            transition: filter 0.5s ease;
+        }
+
+        /* Блюр редактора, пока не авторизован */
+        .editor-wrap.blurred {
+            filter: blur(8px);
+            pointer-events: none;
+        }
+
+        .editor-titlebar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+            flex-shrink: 0;
+            user-select: none;
+            min-height: 48px;
+        }
+
+        .search-box {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 4px 8px;
+            transition: border-color 0.2s ease, background 0.2s ease;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .search-box:focus-within {
+            border-color: rgba(120, 170, 255, 0.7);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .search-icon {
+            width: 16px; height: 16px;
+            color: rgba(255, 255, 255, 0.55);
+            flex-shrink: 0;
+        }
+
+        .search-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ffffff;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            width: 180px;
+            padding: 4px 0;
+        }
+
+        .search-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+
+        .search-counter {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.55);
+            min-width: 40px;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .search-btn {
+            background: rgba(255, 255, 255, 0.10);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            width: 26px; height: 26px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease, border-color 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .search-btn:hover {
+            background: rgba(255, 255, 255, 0.20);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .search-btn:active { background: rgba(255, 255, 255, 0.28); }
+        .search-btn svg { width: 12px; height: 12px; }
+
+        #code-editor {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            min-height: 120px;
+        }
+
+        .cm-editor { height: 100%; font-size: 14px; background: transparent !important; }
+        .cm-scroller {
+            font-family: 'JetBrains Mono', 'Consolas', 'Menlo', 'Monaco', 'Courier New', monospace !important;
+            line-height: 1.6;
+        }
+        .cm-editor .cm-content { color: #e8eaf0; caret-color: #7cc4ff; }
+
+        .cm-gutters {
+            background: transparent !important;
+            border-right: none !important;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
+        .cm-lineNumbers { padding-right: 12px; }
+
+        .cm-lineNumbers .cm-gutterElement {
+            color: #7f8ea3 !important;
+            font-family: 'JetBrains Mono', 'Consolas', monospace !important;
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 32px;
+            padding: 0 8px 0 4px;
+            text-align: right;
+            line-height: 1.6;
+        }
+
+        .cm-activeLineGutter { background: transparent !important; }
+        .cm-activeLineGutter .cm-gutterElement { color: #cbd5e1 !important; font-weight: 700; }
+        .cm-activeLine { background: rgba(255, 255, 255, 0.05) !important; }
+        .cm-cursor { border-left-color: #7cc4ff !important; border-left-width: 2px !important; }
+
+        .cm-selectionBackground,
+        .cm-editor .cm-selectionBackground { background: rgba(90, 150, 255, 0.30) !important; }
+        .cm-focused .cm-selectionBackground { background: rgba(90, 150, 255, 0.38) !important; }
+
+        .cm-searchMatch {
+            background: rgba(255, 210, 60, 0.35) !important;
+            outline: 1px solid rgba(255, 210, 60, 0.55);
+            border-radius: 2px;
+        }
+        .cm-searchMatch.cm-searchMatch-selected {
+            background: rgba(255, 160, 40, 0.75) !important;
+            outline: 2px solid rgba(255, 200, 80, 0.9);
+            color: #fff !important;
+        }
+
+        .cm-scroller::-webkit-scrollbar { width: 10px; height: 10px; }
+        .cm-scroller::-webkit-scrollbar-track { background: transparent; }
+        .cm-scroller::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 5px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        .cm-scroller::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.28);
+            background-clip: padding-box;
+        }
+
+        .search-results {
+            flex-shrink: 0;
+            height: 0;
+            overflow: hidden;
+            background: rgba(14, 17, 22, 0.65);
+            backdrop-filter: blur(20px) saturate(1.2);
+            -webkit-backdrop-filter: blur(20px) saturate(1.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            transition: height 0.25s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-results.active { height: 220px; }
+
+        .search-results-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 10px 7px 14px;
+            font-size: 11.5px;
+            color: rgba(200, 215, 240, 0.8);
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            font-weight: 600;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .search-results-count {
+            color: rgba(255, 255, 255, 0.55);
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0.02em;
+        }
+
+        .search-results-header .spacer { flex: 1; }
+
+        .results-tool {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(220, 230, 245, 0.9);
+            font-size: 11px;
+            padding: 4px 9px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            text-transform: none;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .results-tool:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .results-tool.danger {
+            color: #ffb3b3;
+            border-color: rgba(255, 120, 120, 0.28);
+        }
+
+        .results-tool.danger:hover {
+            background: rgba(255, 80, 80, 0.22);
+            border-color: rgba(255, 120, 120, 0.5);
+            color: #fff;
+        }
+
+        .results-tool svg { width: 11px; height: 11px; }
+
+        .search-results-close {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: color 0.15s, background 0.15s;
+            text-transform: none;
+        }
+        .search-results-close:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+
+        .search-results-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 0;
+        }
+
+        .search-results-list::-webkit-scrollbar { width: 8px; }
+        .search-results-list::-webkit-scrollbar-track { background: transparent; }
+        .search-results-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 4px;
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 10px 5px 14px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 12.5px;
+            color: #d4d8e0;
+            border-left: 2px solid transparent;
+            transition: background 0.12s ease, border-color 0.12s ease;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .search-result-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-left-color: rgba(120, 170, 255, 0.5);
+        }
+
+        .search-result-item.active {
+            background: rgba(120, 170, 255, 0.14);
+            border-left-color: #7cc4ff;
+        }
+
+        .search-result-item.selected {
+            background: rgba(120, 170, 255, 0.22);
+            border-left-color: #a8d0ff;
+        }
+
+        .result-check {
+            width: 14px; height: 14px;
+            border-radius: 3px;
+            border: 1.5px solid rgba(255, 255, 255, 0.28);
+            background: transparent;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, border-color 0.15s;
+        }
+
+        .search-result-item.selected .result-check {
+            background: #5a9eff;
+            border-color: #5a9eff;
+        }
+
+        .search-result-item.selected .result-check::after {
+            content: '';
+            width: 4px;
+            height: 7px;
+            border: solid #fff;
+            border-width: 0 1.8px 1.8px 0;
+            transform: rotate(45deg) translate(-0.5px, -1px);
+        }
+
+        .search-result-line {
+            color: rgba(160, 180, 210, 0.6);
+            min-width: 48px;
+            text-align: right;
+            flex-shrink: 0;
+            font-size: 11.5px;
+        }
+
+        .search-result-content {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: rgba(230, 235, 245, 0.85);
+        }
+
+        .search-result-content mark {
+            background: rgba(255, 200, 60, 0.55);
+            color: #fff;
+            border-radius: 2px;
+            padding: 0 1px;
+            font-weight: 600;
+        }
+
+        .result-delete {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.35);
+            width: 22px; height: 22px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: color 0.15s, background 0.15s;
+            opacity: 0;
+        }
+
+        .search-result-item:hover .result-delete,
+        .search-result-item.selected .result-delete {
+            opacity: 1;
+        }
+
+        .result-delete:hover {
+            background: rgba(255, 80, 80, 0.22);
+            color: #ff9999;
+        }
+
+        .result-delete svg { width: 12px; height: 12px; }
+
+        .search-result-empty {
+            padding: 20px 14px;
+            text-align: center;
+            color: rgba(200, 215, 240, 0.45);
+            font-size: 12.5px;
+            font-style: italic;
         }
     </style>
 </head>
@@ -154,8 +616,518 @@
         >
         <div class="glass-layer" aria-hidden="true"></div>
 
-        <!-- Надпись -->
         <h1 class="title">Saint Analyzer</h1>
+
+        <div class="editor-wrap blurred" id="editor-wrap">
+            <div class="editor-titlebar">
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" class="search-input" id="search-input" placeholder="Поиск символа…" spellcheck="false" autocomplete="off">
+                    <span class="search-counter" id="search-counter"></span>
+                    <button class="search-btn" id="search-prev" title="Предыдущее (Shift+Enter)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="18 15 12 9 6 15"></polyline>
+                        </svg>
+                    </button>
+                    <button class="search-btn" id="search-next" title="Следующее (Enter)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="code-editor"></div>
+
+            <div class="search-results" id="search-results">
+                <div class="search-results-header">
+                    <span>Найдено <span class="search-results-count" id="results-count">0</span></span>
+                    <span class="spacer"></span>
+                    <button class="results-tool" id="btn-select-all" title="Выделить все результаты">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                            <polyline points="8 12 11 15 16 9"></polyline>
+                        </svg>
+                        Выделить все
+                    </button>
+                    <button class="results-tool danger" id="btn-delete-selected" title="Удалить выделенные совпадения">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                            <path d="M10 11v6M14 11v6"></path>
+                        </svg>
+                        Удалить выделенные
+                    </button>
+                    <button class="results-tool danger" id="btn-delete-all" title="Удалить все найденные совпадения">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                            <path d="M10 11v6M14 11v6"></path>
+                            <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Удалить все
+                    </button>
+                    <button class="search-results-close" id="results-close" title="Закрыть (Esc)">✕</button>
+                </div>
+                <div class="search-results-list" id="results-list"></div>
+            </div>
+        </div>
+
+        <!-- Экран авторизации -->
+        <div class="auth-screen" id="auth-screen">
+            <div class="auth-box">
+                <h2>Доступ ограничен</h2>
+                <p>Для входа в Saint Analyzer необходимо ввести действующий ключ доступа.</p>
+                <input type="password" class="auth-input" id="auth-key" placeholder="Введите ключ...">
+                <div class="auth-error" id="auth-error">Неверный ключ. Попробуйте снова.</div>
+                <button class="auth-btn" id="auth-btn">Войти</button>
+            </div>
+        </div>
     </div>
+
+    <script type="module">
+        import { EditorState } from "https://esm.sh/@codemirror/state@6.4.1";
+        import {
+            EditorView, keymap, lineNumbers, highlightActiveLine,
+            highlightActiveLineGutter, drawSelection, dropCursor,
+            rectangularSelection, crosshairCursor
+        } from "https://esm.sh/@codemirror/view@6.26.3";
+        import { defaultKeymap, history, historyKeymap, indentWithTab } from "https://esm.sh/@codemirror/commands@6.3.3";
+        import { html } from "https://esm.sh/@codemirror/lang-html@6.4.7";
+        import { search, setSearchQuery, SearchQuery } from "https://esm.sh/@codemirror/search@6.5.5";
+        import { syntaxHighlighting, HighlightStyle } from "https://esm.sh/@codemirror/language@6.10.1";
+        import { tags as t } from "https://esm.sh/@lezer/highlight@1.2.0";
+
+        const initialCode = `<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Пример</title>
+</head>
+<body>
+    <h1>Привет, мир!</h1>
+    <!-- Вставь свой код сюда. Поддерживается 30 000+ строк. -->
+    <div class="glass">Стекло</div>
+</body>
+</html>`;
+
+        const myHighlight = HighlightStyle.define([
+            { tag: t.keyword, color: '#c792ea' },
+            { tag: [t.name, t.deleted, t.character, t.propertyName, t.macroName], color: '#80cbc4' },
+            { tag: [t.function(t.variableName), t.labelName], color: '#82aaff' },
+            { tag: [t.color, t.constant(t.name), t.standard(t.name)], color: '#ffcb6b' },
+            { tag: [t.definition(t.name), t.separator], color: '#e8eaf0' },
+            { tag: [t.typeName, t.className, t.number, t.changed, t.annotation, t.modifier, t.self, t.namespace], color: '#ffcb6b' },
+            { tag: [t.operator, t.operatorKeyword, t.url, t.escape, t.regexp, t.link, t.special(t.string)], color: '#89ddff' },
+            { tag: [t.meta, t.comment], color: '#6b7a90', fontStyle: 'italic' },
+            { tag: t.strong, fontWeight: 'bold' },
+            { tag: t.emphasis, fontStyle: 'italic' },
+            { tag: t.strikethrough, textDecoration: 'line-through' },
+            { tag: t.link, color: '#c3e88d', textDecoration: 'underline' },
+            { tag: t.heading, fontWeight: 'bold', color: '#f07178' },
+            { tag: [t.atom, t.bool, t.special(t.variableName)], color: '#f78c6c' },
+            { tag: [t.processingInstruction, t.string, t.inserted], color: '#c3e88d' },
+            { tag: t.invalid, color: '#ff5370' },
+            { tag: t.tagName, color: '#f07178' },
+            { tag: t.attributeName, color: '#ffcb6b' },
+            { tag: t.attributeValue, color: '#c3e88d' },
+            { tag: t.comment, color: '#6b7a90', fontStyle: 'italic' },
+        ]);
+
+        // --- ЛОГИКА АВТОРИЗАЦИИ ---
+        const AUTH_KEY = "SAINT_ANALYZER1023910321_JZKLFASDJS2_ADJSAHLAS_123JKLA";
+        
+        const authScreen = document.getElementById('auth-screen');
+        const authInput = document.getElementById('auth-key');
+        const authBtn = document.getElementById('auth-btn');
+        const authError = document.getElementById('auth-error');
+        const editorWrap = document.getElementById('editor-wrap');
+
+        function tryAuth() {
+            if (authInput.value.trim() === AUTH_KEY) {
+                authScreen.classList.add('hidden');
+                editorWrap.classList.remove('blurred');
+                editor.focus();
+            } else {
+                authError.classList.add('show');
+                authInput.value = '';
+                authInput.focus();
+            }
+        }
+
+        authBtn.addEventListener('click', tryAuth);
+        authInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') tryAuth();
+        });
+        authInput.addEventListener('input', () => {
+            authError.classList.remove('show');
+        });
+
+        // --- РЕДАКТОР ---
+
+        const startState = EditorState.create({
+            doc: initialCode,
+            extensions: [
+                lineNumbers(),
+                highlightActiveLineGutter(),
+                highlightActiveLine(),
+                history(),
+                drawSelection(),
+                dropCursor(),
+                EditorState.allowMultipleSelections.of(true),
+                rectangularSelection(),
+                crosshairCursor(),
+                html(),
+                syntaxHighlighting(myHighlight),
+                keymap.of([
+                    ...defaultKeymap,
+                    ...historyKeymap,
+                    indentWithTab
+                ]),
+                EditorView.updateListener.of((update) => {
+                    if (update.docChanged) {
+                        scheduleSearchRefresh();
+                    }
+                })
+            ]
+        });
+
+        const editor = new EditorView({
+            state: startState,
+            parent: document.getElementById("code-editor")
+        });
+
+        const searchInput = document.getElementById('search-input');
+        const searchCounter = document.getElementById('search-counter');
+        const btnPrev = document.getElementById('search-prev');
+        const btnNext = document.getElementById('search-next');
+        const resultsPanel = document.getElementById('search-results');
+        const resultsList = document.getElementById('results-list');
+        const resultsCount = document.getElementById('results-count');
+        const resultsClose = document.getElementById('results-close');
+        const btnSelectAll = document.getElementById('btn-select-all');
+        const btnDeleteSelected = document.getElementById('btn-delete-selected');
+        const btnDeleteAll = document.getElementById('btn-delete-all');
+
+        let matches = [];
+        let currentIndex = -1;
+        const selectedIndices = new Set();
+
+        let searchSessionId = 0;
+        let searchDebounceTimer = null;
+
+        function esc(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function scheduleSearchRefresh() {
+            if (!searchInput.value) return;
+            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => runSearch(false), 400);
+        }
+
+        async function runSearch(scrollToFirst) {
+            const query = searchInput.value;
+            if (!query) {
+                matches = [];
+                currentIndex = -1;
+                selectedIndices.clear();
+                searchCounter.textContent = '';
+                renderResults();
+                return;
+            }
+
+            const mySession = ++searchSessionId;
+            resultsCount.textContent = '…';
+
+            await new Promise(r => requestAnimationFrame(r));
+
+            const doc = editor.state.doc;
+            const totalLines = doc.lines;
+            const lowerQuery = query.toLowerCase();
+            const queryLen = query.length;
+
+            const found = [];
+            const BATCH = 400;
+
+            for (let i = 1; i <= totalLines; i++) {
+                if (mySession !== searchSessionId) return;
+                const line = doc.line(i);
+                const text = line.text;
+                const lower = text.toLowerCase();
+                let pos = 0;
+                while ((pos = lower.indexOf(lowerQuery, pos)) !== -1) {
+                    found.push({ from: line.from + pos, to: line.from + pos + queryLen });
+                    pos += queryLen || 1;
+                }
+                if (i % BATCH === 0) {
+                    await new Promise(r => setTimeout(r, 0));
+                    if (mySession !== searchSessionId) return;
+                }
+            }
+
+            if (mySession !== searchSessionId) return;
+
+            matches = found;
+            currentIndex = matches.length > 0 ? 0 : -1;
+            selectedIndices.clear();
+
+            editor.dispatch({
+                effects: setSearchQuery.of(new SearchQuery({
+                    search: query,
+                    caseSensitive: false,
+                    literal: true,
+                    highlight: matches.length > 0
+                }))
+            });
+
+            if (matches.length === 0) {
+                searchCounter.textContent = '0 / 0';
+                renderResults();
+                return;
+            }
+
+            searchCounter.textContent = `1 / ${matches.length.toLocaleString('ru-RU')}`;
+            renderResults();
+            if (scrollToFirst) scrollToMatch(0);
+        }
+
+        const MAX_RENDER = 200;
+
+        function renderResults() {
+            if (!searchInput.value || matches.length === 0) {
+                resultsPanel.classList.remove('active');
+                resultsList.innerHTML = '';
+                resultsCount.textContent = '0';
+                return;
+            }
+
+            resultsPanel.classList.add('active');
+            resultsCount.textContent = matches.length.toLocaleString('ru-RU');
+
+            const doc = editor.state.doc;
+            const total = Math.min(matches.length, MAX_RENDER);
+
+            const frag = document.createDocumentFragment();
+            for (let i = 0; i < total; i++) {
+                const m = matches[i];
+                const lineInfo = doc.lineAt(m.from);
+                const lineNum = lineInfo.number;
+                const lineText = lineInfo.text;
+
+                const relStart = m.from - lineInfo.from;
+                const relEnd = m.to - lineInfo.from;
+                const before = lineText.slice(0, relStart);
+                const middle = lineText.slice(relStart, relEnd);
+                const after = lineText.slice(relEnd);
+
+                let displayBefore = before, displayAfter = after;
+                if (before.length > 80) displayBefore = '…' + before.slice(-80);
+                if (after.length > 80) displayAfter = after.slice(0, 80) + '…';
+
+                const item = document.createElement('div');
+                item.className = 'search-result-item';
+                if (i === currentIndex) item.classList.add('active');
+                if (selectedIndices.has(i)) item.classList.add('selected');
+                item.dataset.index = i;
+
+                item.innerHTML =
+                    `<span class="result-check"></span>` +
+                    `<span class="search-result-line">${lineNum}</span>` +
+                    `<span class="search-result-content">${esc(displayBefore)}<mark>${esc(middle)}</mark>${esc(displayAfter)}</span>` +
+                    `<button class="result-delete" title="Удалить это совпадение">` +
+                        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">` +
+                            `<polyline points="3 6 5 6 21 6"></polyline>` +
+                            `<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>` +
+                        `</svg>` +
+                    `</button>`;
+
+                item.addEventListener('click', (e) => {
+                    if (e.target.closest('.result-delete')) return;
+                    if (e.shiftKey || e.ctrlKey || e.metaKey) {
+                        toggleSelect(i);
+                    } else {
+                        scrollToMatch(i);
+                        setActiveResultItem(i);
+                    }
+                });
+
+                item.querySelector('.result-delete').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteMatches([i]);
+                });
+
+                frag.appendChild(item);
+            }
+
+            if (matches.length > MAX_RENDER) {
+                const more = document.createElement('div');
+                more.className = 'search-result-empty';
+                more.textContent = `… и ещё ${(matches.length - MAX_RENDER).toLocaleString('ru-RU')} совпадений (показаны первые ${MAX_RENDER})`;
+                frag.appendChild(more);
+            }
+
+            resultsList.innerHTML = '';
+            resultsList.appendChild(frag);
+        }
+
+        function setActiveResultItem(index) {
+            const items = resultsList.querySelectorAll('.search-result-item');
+            items.forEach(el => el.classList.remove('active'));
+            const target = resultsList.querySelector(`.search-result-item[data-index="${index}"]`);
+            if (target) {
+                target.classList.add('active');
+                target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        }
+
+        function toggleSelect(index) {
+            if (selectedIndices.has(index)) selectedIndices.delete(index);
+            else selectedIndices.add(index);
+            const item = resultsList.querySelector(`.search-result-item[data-index="${index}"]`);
+            if (item) item.classList.toggle('selected', selectedIndices.has(index));
+        }
+
+        function scrollToMatch(index) {
+            if (matches.length === 0) return;
+            if (index < 0) index = matches.length - 1;
+            if (index >= matches.length) index = 0;
+            currentIndex = index;
+
+            const m = matches[index];
+            editor.dispatch({
+                selection: { anchor: m.from, head: m.to },
+                effects: EditorView.scrollIntoView(m.from, { y: 'center' })
+            });
+            searchCounter.textContent = `${(index + 1).toLocaleString('ru-RU')} / ${matches.length.toLocaleString('ru-RU')}`;
+        }
+
+        function deleteMatches(indices) {
+            if (matches.length === 0) return;
+
+            let toDelete;
+            if (indices === null) {
+                toDelete = matches.map((_, i) => i);
+            } else {
+                toDelete = [...indices];
+            }
+            if (toDelete.length === 0) return;
+
+            const ranges = toDelete
+                .map(i => matches[i])
+                .filter(Boolean)
+                .sort((a, b) => b.from - a.from);
+
+            const BATCH = 200;
+            let applied = 0;
+
+            const applyBatch = () => {
+                if (applied >= ranges.length) {
+                    runSearch(false);
+                    return;
+                }
+                const slice = ranges.slice(applied, applied + BATCH);
+                editor.dispatch({
+                    changes: slice.map(r => ({ from: r.from, to: r.to, insert: '' }))
+                });
+                applied += slice.length;
+                setTimeout(applyBatch, 0);
+            };
+
+            applyBatch();
+        }
+
+        let inputDebounce = null;
+        searchInput.addEventListener('input', () => {
+            if (inputDebounce) clearTimeout(inputDebounce);
+            inputDebounce = setTimeout(() => runSearch(false), 350);
+        });
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const nextIndex = e.shiftKey ? currentIndex - 1 : currentIndex + 1;
+                scrollToMatch(nextIndex);
+                setActiveResultItem(currentIndex);
+            } else if (e.key === 'Escape') {
+                closeResults();
+            }
+        });
+
+        btnPrev.addEventListener('click', () => {
+            scrollToMatch(currentIndex - 1);
+            setActiveResultItem(currentIndex);
+        });
+        btnNext.addEventListener('click', () => {
+            scrollToMatch(currentIndex + 1);
+            setActiveResultItem(currentIndex);
+        });
+
+        resultsClose.addEventListener('click', closeResults);
+
+        function closeResults() {
+            searchSessionId++;
+            resultsPanel.classList.remove('active');
+            searchInput.value = '';
+            matches = [];
+            currentIndex = -1;
+            selectedIndices.clear();
+            searchCounter.textContent = '';
+            resultsList.innerHTML = '';
+            resultsCount.textContent = '0';
+            editor.dispatch({
+                effects: setSearchQuery.of(new SearchQuery({ search: '', highlight: false }))
+            });
+            editor.focus();
+        }
+
+        btnSelectAll.addEventListener('click', () => {
+            if (matches.length === 0) return;
+            if (selectedIndices.size === matches.length) selectedIndices.clear();
+            else for (let i = 0; i < matches.length; i++) selectedIndices.add(i);
+            resultsList.querySelectorAll('.search-result-item').forEach(el => {
+                const i = Number(el.dataset.index);
+                el.classList.toggle('selected', selectedIndices.has(i));
+            });
+        });
+
+        btnDeleteSelected.addEventListener('click', () => {
+            if (selectedIndices.size === 0) return;
+            if (confirm(`Удалить ${selectedIndices.size.toLocaleString('ru-RU')} выделенных совпадений?`)) {
+                deleteMatches(selectedIndices);
+                selectedIndices.clear();
+            }
+        });
+
+        btnDeleteAll.addEventListener('click', () => {
+            if (matches.length === 0) return;
+            if (confirm(`Удалить все ${matches.length.toLocaleString('ru-RU')} совпадений?`)) {
+                deleteMatches(null);
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            if (e.key === 'Escape' && resultsPanel.classList.contains('active')) {
+                closeResults();
+            }
+            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIndices.size > 0) {
+                if (!editor.hasFocus) {
+                    e.preventDefault();
+                    if (confirm(`Удалить ${selectedIndices.size.toLocaleString('ru-RU')} выделенных совпадений?`)) {
+                        deleteMatches(selectedIndices);
+                        selectedIndices.clear();
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>
